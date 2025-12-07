@@ -14,7 +14,7 @@ export async function fetcher<T = any>(url: string) {
       error.info = errorData;
       throw error;
     }
-    
+
     // Handle other errors
     const text = await res.text();
     const error = new Error(`Fetch error ${res.status}: ${text}`) as Error & { status: number };

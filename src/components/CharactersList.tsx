@@ -22,9 +22,9 @@ export default function CharactersList() {
   const { data, error, isLoading } = useSWR<Paginated<Character>>(url, fetcher, { 
     revalidateOnFocus: false,
     shouldRetryOnError: false,
-    onError: (err) => {
+    onError: (err: any) => {
       // Handle 404 (no results) silently - we'll show a message in the UI
-      if (err?.status === 404) {
+      if (err?.status === 404 || err?.message?.includes('404')) {
         return;
       }
       // Show toast for other errors
@@ -36,7 +36,7 @@ export default function CharactersList() {
   useEffect(() => setPage(1), [name, status, species]);
 
   // Check if error is a 404 (no results found)
-  const isNoResults = error?.status === 404;
+  const isNoResults = error && (error?.status === 404 || error?.message?.includes('404') || error?.message?.includes('nothing here'));
   const hasOtherError = error && !isNoResults;
 
   return (
