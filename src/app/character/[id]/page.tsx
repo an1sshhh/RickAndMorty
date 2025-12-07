@@ -1,12 +1,25 @@
 import type { Character } from "@/types/rick";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 async function fetchCharacter(id: string): Promise<Character> {
-  const res = await fetch(`https://rickandmortyapi.com/api/character/${id}`, {
-    cache: 'no-store'
-  });
-  if (!res.ok) throw new Error("Failed to fetch character");
-  return res.json();
+  try {
+    const res = await fetch(`https://rickandmortyapi.com/api/character/${id}`, {
+      cache: 'no-store'
+    });
+    if (res.status === 404) {
+      notFound();
+    }
+    if (!res.ok) {
+      throw new Error(`Failed to fetch character: ${res.status}`);
+    }
+    return res.json();
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('NEXT_NOT_FOUND')) {
+      throw error;
+    }
+    throw new Error("Unable to load character. Please try again later.");
+  }
 }
 
 export default async function CharacterPage({
@@ -15,7 +28,30 @@ export default async function CharacterPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const character = await fetchCharacter(id);
+  let character: Character;
+  
+  try {
+    character = await fetchCharacter(id);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('NEXT_NOT_FOUND')) {
+      throw error;
+    }
+    // Return error page for other errors
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rickDark to-rickDarker flex items-center justify-center">
+        <div className="max-w-md mx-auto p-8 bg-rickDark/80 border-4 border-red-500 rounded-lg text-center">
+          <h1 className="text-3xl font-bold text-red-500 mb-4">Error Loading Character</h1>
+          <p className="text-foreground/70 mb-6">{error instanceof Error ? error.message : "Something went wrong"}</p>
+          <Link
+            href="/"
+            className="inline-block px-6 py-3 bg-rickGreen text-rickDark font-bold rounded-lg hover:bg-opacity-90 transition-all"
+          >
+            ← Back to RickDex
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const statusColor = {
     Alive: "bg-rickGreen/20 text-rickGreen border-rickGreen",

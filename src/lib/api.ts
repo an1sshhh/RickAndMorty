@@ -5,8 +5,21 @@ export const API_BASE = "https://rickandmortyapi.com/api";
 export async function fetcher<T = any>(url: string) {
   const res = await fetch(url);
   if (!res.ok) {
+    // Handle 404 (no results) gracefully
+    if (res.status === 404) {
+      const errorData = await res.json().catch(() => ({}));
+      const message = errorData.error || "No characters found matching your filters";
+      const error = new Error(message) as Error & { status: number; info: any };
+      error.status = 404;
+      error.info = errorData;
+      throw error;
+    }
+    
+    // Handle other errors
     const text = await res.text();
-    throw new Error(`Fetch error ${res.status}: ${text}`);
+    const error = new Error(`Fetch error ${res.status}: ${text}`) as Error & { status: number };
+    error.status = res.status;
+    throw error;
   }
   return (await res.json()) as T;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { buildCharacterIdsUrl, fetcher } from "@/lib/api";
 import type { Character } from "@/types/rick";
 import CharacterCard from "@/components/CharacterCard";
@@ -26,13 +27,18 @@ export default function FavoritesPage() {
     const url = buildCharacterIdsUrl(ids);
     if (!url) return;
     setLoading(true);
+    setError(null);
     fetcher<Character | Character[]>(url)
       .then((res) => {
         // API returns object for single id, array for multiple
         const list = Array.isArray(res) ? res : [res];
         setChars(list);
       })
-      .catch((err) => setError(String(err)))
+      .catch((err) => {
+        const errorMsg = err?.message || "Failed to load favorite characters";
+        setError(errorMsg);
+        toast.error(errorMsg);
+      })
       .finally(() => setLoading(false));
   }, [ids]);
 
@@ -69,8 +75,17 @@ export default function FavoritesPage() {
         )}
 
         {error && (
-          <div className="bg-red-500/20 border-2 border-red-500 text-red-500 p-4 rounded-lg font-bold">
-            {error}
+          <div className="text-center py-12 bg-red-900/20 rounded-lg border-2 border-red-500/50">
+            <p className="text-xl text-red-400 font-bold mb-2">Unable to Load Favorites</p>
+            <p className="text-sm text-red-300/70 mb-4">
+              {error}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-rickGreen text-rickDark font-bold rounded-lg hover:bg-opacity-90 transition-all"
+            >
+              Try Again
+            </button>
           </div>
         )}
 
