@@ -6,8 +6,9 @@ async function fetchCharacter(id: string): Promise<Character> {
   return res.json();
 }
 
-export default async function CharacterPage({ params }: { params: { id: string } }) {
-  const character = await fetchCharacter(params.id);
+export default async function CharacterPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const character = await fetchCharacter(id);
 
   return (
     <div>
