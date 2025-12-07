@@ -4,26 +4,19 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import type { Character } from "@/types/rick";
 import Link from "next/link";
+import { getFavs, toggleFav as toggleFavInStorage } from "@/lib/favs";
 
 export default function CharacterCard({ character }: { character: Character }) {
   const [isFav, setIsFav] = useState(false);
 
   useEffect(() => {
-    const favs = JSON.parse(localStorage.getItem("favs") || "[]") as number[];
+    const favs = getFavs();
     setIsFav(favs.includes(character.id));
   }, [character.id]);
 
   function toggleFav() {
-    const favs = JSON.parse(localStorage.getItem("favs") || "[]") as number[];
-    if (favs.includes(character.id)) {
-      const updated = favs.filter((id) => id !== character.id);
-      localStorage.setItem("favs", JSON.stringify(updated));
-      setIsFav(false);
-    } else {
-      favs.push(character.id);
-      localStorage.setItem("favs", JSON.stringify(favs));
-      setIsFav(true);
-    }
+    const newIsFav = toggleFavInStorage(character.id);
+    setIsFav(newIsFav);
   }
 
   const statusColor = {

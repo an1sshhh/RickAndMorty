@@ -2,7 +2,9 @@ import type { Character } from "@/types/rick";
 import Link from "next/link";
 
 async function fetchCharacter(id: string): Promise<Character> {
-  const res = await fetch(`https://rickandmortyapi.com/api/character/${id}`);
+  const res = await fetch(`https://rickandmortyapi.com/api/character/${id}`, {
+    cache: 'no-store'
+  });
   if (!res.ok) throw new Error("Failed to fetch character");
   return res.json();
 }
@@ -10,9 +12,10 @@ async function fetchCharacter(id: string): Promise<Character> {
 export default async function CharacterPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const character = await fetchCharacter(params.id);
+  const { id } = await params;
+  const character = await fetchCharacter(id);
 
   const statusColor = {
     Alive: "bg-rickGreen/20 text-rickGreen border-rickGreen",
